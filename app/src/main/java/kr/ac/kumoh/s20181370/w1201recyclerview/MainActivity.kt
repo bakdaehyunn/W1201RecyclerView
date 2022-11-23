@@ -9,6 +9,7 @@ import android.view.ViewGroup
 import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.activity.viewModels
+import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.DefaultItemAnimator
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -16,21 +17,25 @@ import kr.ac.kumoh.s20181370.w1201recyclerview.databinding.ActivityMainBinding
 
 class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
-    private val model : ListViewModel by viewModels()
+    //private val model : ListViewModel by viewModels()
+    private lateinit var model: ListViewModel
     private val songAdapter = SongAdapter()
     @SuppressLint("NotifyDataSetChanged")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding= ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
+
+        model = ViewModelProvider(this)[ListViewModel::class.java]
         binding.list.apply{
             layoutManager = LinearLayoutManager(applicationContext)
             itemAnimator = DefaultItemAnimator()
             setHasFixedSize(true)
             adapter = songAdapter
         }
-        model.getList().observe(this){
-            songAdapter.notifyDataSetChanged()
+        model.list.observe(this){
+//            songAdapter.notifyDataSetChanged()
+            songAdapter.notifyItemRangeChanged(0,model.list.value?.size ?:0)
         }
         for (i in 1..3){
             model.add("사랑은 장난이 아니야")
@@ -50,9 +55,9 @@ class MainActivity : AppCompatActivity() {
         }
 
         override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-            holder.txSong.text = model.getSong(position)
+            holder.txSong.text = model.list.value?.get(position) ?: ""
         }
 
-        override fun getItemCount() = model.getSize()
+        override fun getItemCount() = model.list.value?.size ?:0
     }
 }
